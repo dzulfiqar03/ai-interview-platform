@@ -79,7 +79,9 @@ export default function AssessmentEditPage() {
       await assessmentsApi.update(Number(id), {
         name: data.name,
         time_limit_min: data.time_limit_min,
-        assessment_skills_attributes: buildSkillsPayload(originalSkills, data.skills as AssessmentSkill[]),
+        assessment_skills_attributes: buildSkillsPayload(originalSkills, data.skills as AssessmentSkill[]).map(
+          (skill) => ({ ...skill, id: skill.id ?? undefined })
+        ),
       });
       navigate(`/assessments/${id}/invite`);
     } catch (e: any) {

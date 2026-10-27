@@ -12,6 +12,7 @@ import SkillPicker from "@/components/assessment/SkillPicker";
 import { vacanciesApi } from "@/services/vacancies";
 import { ArrowLeft, Plus, X, Loader2 } from "lucide-react";
 import type { VacancySkill } from "@/types";
+import { buildSkillsPayload } from "@/utils/buildSkillsPayload";
 
 interface VacancyFormValues {
   role_title: string;
@@ -26,6 +27,7 @@ export default function VacancyEditPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+const [originalSkills, setOriginalSkills] = useState<Partial<VacancySkill>[]>([]);
 
   const { register, handleSubmit, control, setValue, watch, reset } = useForm<VacancyFormValues>({
     defaultValues: { role_title: "", culture_dimensions: "", competency_expectations: "", skills: [] },
@@ -36,6 +38,7 @@ export default function VacancyEditPage() {
     vacanciesApi.get(Number(id)).then((res) => {
       const v = res.data.vacancy;
       reset({ role_title: v.role_title, culture_dimensions: v.culture_dimensions, competency_expectations: v.competency_expectations, skills: v.skills });
+      setOriginalSkills(v.skills);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [id, reset]);
 
@@ -46,7 +49,10 @@ export default function VacancyEditPage() {
         role_title: data.role_title,
         culture_dimensions: data.culture_dimensions,
         competency_expectations: data.competency_expectations,
-        vacancy_skills_attributes: data.skills,
+        vacancy_skills_attributes: buildSkillsPayload(originalSkills, data.skills, false).map((skill) => ({
+          ...skill,
+          id: skill.id ?? undefined,
+        })),
       });
       navigate("/vacancies");
     } finally {
