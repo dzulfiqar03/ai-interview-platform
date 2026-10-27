@@ -28,6 +28,7 @@ import { assessmentsApi } from "@/services/assessments";
 import { TIME_LIMIT_OPTIONS } from "@/utils/constants";
 import type { AssessmentSkill } from "@/types";
 import type { AssessmentFormValues } from "./AssessmentNewPage";
+import { buildSkillsPayload } from "@/utils/buildSkillsPayload";
 
 export default function AssessmentEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -36,7 +37,7 @@ export default function AssessmentEditPage() {
   const [submitting, setSubmitting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [originalSkills, setOriginalSkills] = useState<AssessmentSkill[]>([]);
   const form = useForm<AssessmentFormValues>({
     defaultValues: { name: "", time_limit_min: 45, skills: [] },
   });
@@ -50,8 +51,9 @@ export default function AssessmentEditPage() {
       .then((res) => {
         const a = res.data.assessment;
         reset({ name: a.name, time_limit_min: a.time_limit_min, skills: a.skills });
+        setOriginalSkills(a.skills || []);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, [id, reset]);
 
@@ -77,7 +79,7 @@ export default function AssessmentEditPage() {
       await assessmentsApi.update(Number(id), {
         name: data.name,
         time_limit_min: data.time_limit_min,
-        assessment_skills_attributes: data.skills.map((s, i) => ({ ...s, display_order: i })),
+        assessment_skills_attributes: buildSkillsPayload(originalSkills, data.skills as AssessmentSkill[]),
       });
       navigate(`/assessments/${id}/invite`);
     } catch (e: any) {

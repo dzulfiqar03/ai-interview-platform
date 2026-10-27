@@ -9,5 +9,5 @@ export function buildSkillsPayload(
     .filter(s => s.id != null && !keptIds.has(s.id))
     .map(s => ({ id: s.id, _destroy: true }))
   const kept = current.map((s, i) => ({ ...s, display_order: i }))
-  return []
+  return [...kept, ...removed]
 }
